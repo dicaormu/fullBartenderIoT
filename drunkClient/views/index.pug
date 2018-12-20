@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  h1= title
+  #addCommand
+    fieldset
+      label(for='inputFoodCommand') I want:
+      br
+      input#inputFoodQty(type='number', placeholder='foodQuantity')
+      input#inputFoodCommand(type='string', placeholder='foodName')
+      br
+      input#inputBeerQty(type='number', placeholder='beerQuantity')
+      input#inputBeerCommand(type='string', placeholder='beerName')
+      br
+      img.className#btnAddCommand(src="/images/button.jpeg")
+  #URLRegistry
+    fieldset
+      label(for='registrationUrl') URL for Registration:
+      input#registrationUrl(type='string', placeholder='http://')
+      br
+      button#btnRegisterToUrl Register to URL

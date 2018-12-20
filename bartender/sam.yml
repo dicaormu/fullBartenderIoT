@@ -1,0 +1,352 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: AWS SAM template for bartender hands-on
+Parameters:
+  User:
+    Type: String
+    # TODO change for your preferred
+    Default: testEpf
+Resources:
+  LambdaRegisterClient:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/registerClient
+      Timeout: 10
+      Runtime: go1.x
+      CodeUri:
+        Bucket: handsonbartender
+        Key: !Sub ${User}/registerClient.zip
+      Policies:
+      - AWSIoTThingsRegistration
+      - AWSIoTConfigAccess
+      - AWSIoTDataAccess
+      Events:
+        CommandsGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Bartender
+            Path: /client
+            Method: POST
+      Environment:
+        Variables:
+          POLICY_DRUNK_CLIENT: !Ref PolicyDrunkClient
+#  LambdaRuleReadCommandBeer:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: bin/readCommandBeer
+#      Timeout: 10
+#      Runtime: go1.x
+#      CodeUri:
+#        Bucket: handsonbartender
+#        Key: !Sub ${User}/readCommandBeer.zip
+#      Policies:
+#      - AWSIoTThingsRegistration
+#      - AWSIoTConfigAccess
+#      - AWSIoTDataAccess
+#      - DynamoDBCrudPolicy:
+#          TableName: !Sub ${User}-Command
+#      Environment:
+#        Variables:
+#          TABLE_COMMANDS: !Sub ${User}-Command
+#      Events:
+#        EventCommandReception:
+#          Type: IoTRule
+#          Name: IotRuleCommandBeerReception
+#          Properties:
+#            AwsIotSqlVersion: "2016-03-23"
+#            Sql: "SELECT *, topic(2) as client FROM "
+#  LambdaRuleReadCommandFood:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: bin/readCommandFood
+#      Timeout: 10
+#      Runtime: go1.x
+#      CodeUri:
+#        Bucket: handsonbartender
+#        Key: !Sub ${User}/readCommandFood.zip
+#      Policies:
+#      - AWSIoTThingsRegistration
+#      - AWSIoTConfigAccess
+#      - AWSIoTDataAccess
+#      - DynamoDBCrudPolicy:
+#          TableName: !Sub ${User}-Command
+#      Environment:
+#        Variables:
+#          TABLE_COMMANDS: !Sub ${User}-Command
+#      Events:
+#        EventCommandReception:
+#          Type: IoTRule
+#          Name: IotRuleCommandFoodReception
+#          Properties:
+#            AwsIotSqlVersion: "2016-03-23"
+#            Sql: "SELECT *,topic(2) as client FROM "
+#  LambdaGetCommands:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: bin/getCommand
+#      Timeout: 10
+#      Runtime: go1.x
+#      CodeUri:
+#        Bucket: handsonbartender
+#        Key: !Sub ${User}/getCommand.zip
+#      Policies:
+#      - DynamoDBCrudPolicy:
+#          TableName: !Sub ${User}-Command
+#      Environment:
+#        Variables:
+#          TABLE_COMMANDS: !Sub ${User}-Command
+#      Events:
+#        CommandsGet:
+#          Type: Api
+#          Properties:
+#            RestApiId: !Ref Bartender
+#            Path: /command
+#            Method: GET
+#  LambdaStatusBar:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: bin/changeStatusBar
+#      Timeout: 10
+#      Runtime: go1.x
+#      CodeUri:
+#        Bucket: handsonbartender
+#        Key: !Sub ${User}/changeStatusBar.zip
+#      Policies:
+#      - AWSIoTThingsRegistration
+#      - AWSIoTConfigAccess
+#      - AWSIoTDataAccess
+#      - DynamoDBCrudPolicy:
+#          TableName: !Sub ${User}-Command
+#      Environment:
+#        Variables:
+#          TABLE_COMMANDS: !Sub ${User}-Command
+#      Events:
+#        CommandsGet:
+#          Type: Api
+#          Properties:
+#            RestApiId: !Ref Bartender
+#            Path: /client/{idClient}/close
+#            Method: POST
+#  LambdaGetFacture:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: bin/getFacture
+#      Timeout: 10
+#      Runtime: go1.x
+#      CodeUri:
+#        Bucket: handsonbartender
+#        Key: !Sub ${User}/getFacture.zip
+#      Policies:
+#      - DynamoDBReadPolicy:
+#          TableName: !Sub ${User}-Command
+#      Environment:
+#        Variables:
+#          TABLE_COMMANDS: !Sub ${User}-Command
+#      Events:
+#        EventCommandReception:
+#          Type: IoTRule
+#          Name: IotRuleCommandFactureGeneration
+#          Properties:
+#            AwsIotSqlVersion: "2016-03-23"
+#            Sql: "SELECT *,topic(2) as client FROM  "
+  Bartender:
+    Type: AWS::Serverless::Api
+    Properties:
+      EndpointConfiguration: REGIONAL
+      Name: !Sub ${User} - Bartender Api
+      DefinitionBody:
+        swagger: "2.0"
+        info:
+          version: "2017-11-09T13:59:26Z"
+          title: !Sub "${AWS::StackName}-api-test"
+        basePath: !Sub "/test"
+        schemes:
+          - "https"
+        paths:
+#          /command:
+#            get:
+#              summary: Get unattended commands
+#              operationId: CommandsGet
+#              consumes:
+#              - application/json
+#              produces:
+#              - application/json
+#              responses:
+#                '200':
+#                  description: "200 response"
+#                  schema:
+#                    $ref: "#/definitions/Command"
+#              x-amazon-apigateway-integration:
+#                responses:
+#                  default:
+#                    statusCode: "200"
+#                uri:
+#                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaGetCommands.Arn}/invocations"
+#                passthroughBehavior: "when_no_match"
+#                httpMethod: "POST"
+#                contentHandling: "CONVERT_TO_TEXT"
+#                type: "aws_proxy"
+          /client:
+            post:
+              tags:
+              - registerClient
+              summary: register an IoT client.
+              operationId: registerClientPost
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              parameters:
+              - in: body
+                name: body
+                description: client device that will be added to the IoT Platform.
+                required: true
+                schema:
+                  $ref: '#/definitions/Client'
+              responses:
+                '200':
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Client"
+                '422':
+                  $ref: "#/responses/UnprocessableEntity"
+                '424':
+                  $ref: "#/responses/FailedDependency"
+              #security:
+              #- sigv4: []
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaRegisterClient.Arn}/invocations"
+                passthroughBehavior: "when_no_match"
+                httpMethod: "POST"
+                contentHandling: "CONVERT_TO_TEXT"
+                type: "aws_proxy"
+#          /client/{idClient}/close:
+#            post:
+#              summary: close the bar for a client
+#              operationId: ClientPost
+#              consumes:
+#              - application/json
+#              produces:
+#              - application/json
+#              parameters:
+#              - in: path
+#                name: idClient
+#                required: true
+#                description: The id of the client.
+#                type: string
+#              responses:
+#                '200':
+#                  description: "200 response"
+#              x-amazon-apigateway-integration:
+#                responses:
+#                  default:
+#                    statusCode: "200"
+#                uri:
+#                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaStatusBar.Arn}/invocations"
+#                passthroughBehavior: "when_no_match"
+#                httpMethod: "POST"
+#                contentHandling: "CONVERT_TO_TEXT"
+#                type: "aws_proxy"
+#        definitions:
+#          Client:
+#            type: object
+#            description: Resource representing a device.
+#            properties:
+#              id:
+#                type: string
+#                description: Id of the client. If it's not sended by the device, the system provides one.
+#              privateKey:
+#                type: string
+#                description: generated private key provided by AWS.
+#              publicKey:
+#                type: string
+#                description: generated public key provided by AWS.
+#              CertificatePem:
+#                type: string
+#                description: generated certificate provided by AWS.
+#              CertificateArn:
+#                type: string
+#                description: Aws id of this certificate.
+#          Bill:
+#            type: object
+#            properties:
+#              food:
+#                type: array
+#                items:
+#                  $ref: '#/definitions/Item'
+#              beer:
+#                type: array
+#                items:
+#                  $ref: '#/definitions/Item'
+#          Command:
+#            type: object
+#            properties:
+#              id:
+#                type: string
+#              beer:
+#                type: object
+#                $ref: '#/definitions/Item'
+#              food:
+#                type: object
+#                $ref: '#/definitions/Item'
+#          Item:
+#            type: object
+#            properties:
+#              name:
+#                type: string
+#              amount:
+#                type: int
+#      StageName: 'test'
+  DynamoDBCommandTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${User}-Command'
+      AttributeDefinitions:
+         - AttributeName: id
+           AttributeType: S
+      KeySchema:
+         - AttributeName: id
+           KeyType: HASH
+      ProvisionedThroughput:
+         ReadCapacityUnits: 1
+         WriteCapacityUnits: 1
+  PolicyDrunkClient:
+    Type: AWS::IoT::Policy
+    Properties:
+      PolicyName: !Sub ${User}-policyDrunkClient
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - iot:Connect
+          - iot:GetPolicy
+          Resource:
+          - '*'
+          Condition:
+            Bool:
+              iot:Connection.Thing.IsAttached:
+              - 'true'
+        - Effect: Allow
+          Action:
+          - iot:Publish
+          Resource:
+          - '*'
+          Condition:
+            Bool:
+              iot:Connection.Thing.IsAttached:
+              - 'true'
+        - Effect: Allow
+          Action:
+          - iot:subscribe
+          - iot:Receive
+          Resource:
+          - '*'
+          Condition:
+            Bool:
+              iot:Connection.Thing.IsAttached:
+              - 'true'
