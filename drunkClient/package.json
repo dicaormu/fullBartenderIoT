@@ -1,0 +1,19 @@
+{
+  "name": "drunk-simulator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "aws-iot-device-sdk": "^2.2.1",
+    "express": "^4.16.3",
+    "pug": "^2.0.3",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "watch": "nodemon server.js -e js,pug",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
